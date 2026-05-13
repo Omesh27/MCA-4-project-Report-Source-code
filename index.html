@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Green Energy Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=63">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body data-theme="light">
+    <div class="page-shell">
+        <header class="top-header">
+            <div class="hello-box">
+                <div class="hello-icon">⚡</div>
+                <div class="hello-text">
+                    <div class="hello-line">Hi <strong id="ownerNameTop">User</strong></div>
+                    <div class="hello-subline">AI-based PC Power Monitoring Dashboard</div>
+                </div>
+            </div>
+            <div class="top-actions">
+                <div class="theme-box">
+                    <button class="theme-btn" id="themeBtn" type="button" onclick="toggleThemeMenu(event)">
+                        <span class="theme-dots">⋯</span>
+                    </button>
+
+                    <div class="theme-menu" id="themeMenu">
+                        <div class="theme-menu-group">
+                            <button class="theme-option" type="button" onclick="toggleThemeSubmenu(event)">
+                                Theme
+                            </button>
+                            <div class="theme-submenu" id="themeSubmenu">
+                                <button class="theme-option" type="button" onclick="chooseTheme('light')">Light</button>
+                                <button class="theme-option" type="button" onclick="chooseTheme('dark')">Dark</button>
+                                <button class="theme-option" type="button" onclick="chooseTheme('system')">System Default</button>
+                            </div>
+                        </div>
+
+                        <button class="theme-option" type="button" onclick="openExportedDataFolder()">
+                            Exported Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-layout">
+            <aside class="left-panel">
+                <div class="panel-title-row">
+                    <div class="section-title-wrap">
+                        <h2>Overview</h2>
+                        <div class="tiny-line"></div>
+                    </div>
+                    <button class="export-btn" onclick="exportData()">Export CSV</button>
+                </div>
+
+                <div class="cards-grid">
+                    <button class="metric-card active-card" onclick="setMetric('cpu', this)">
+                        <div class="metric-head">
+                            <span class="metric-title">CPU Usage</span>
+                            <span class="metric-icon">🧠</span>
+                        </div>
+                        <div class="metric-mini-line blue-line"></div>
+                        <div class="metric-value-wrap">
+                            <span class="metric-value" id="cpuVal">0</span>
+                            <span class="metric-unit">%</span>
+                        </div>
+                    </button>
+
+                    <button class="metric-card" onclick="setMetric('gpu', this)">
+                        <div class="metric-head">
+                            <span class="metric-title">GPU Usage</span>
+                            <span class="metric-icon">🎮</span>
+                        </div>
+                        <div class="metric-mini-line violet-line"></div>
+                        <div class="metric-value-wrap">
+                            <span class="metric-value" id="gpuVal">0</span>
+                            <span class="metric-unit">%</span>
+                        </div>
+                    </button>
+
+                    <button class="metric-card" onclick="setMetric('memory_disk', this)">
+                        <div class="metric-head">
+                            <span class="metric-title">RAM / Disk Usage</span>
+                            <span class="metric-icon">💾</span>
+                        </div>
+                        <div class="metric-mini-line cyan-line"></div>
+                        <div class="double-metric-box">
+                            <div class="double-metric-row">
+                                <span>RAM</span>
+                                <span><strong id="ramVal">0</strong> %</span>
+                            </div>
+                            <div class="double-metric-row">
+                                <span>Disk</span>
+                                <span><strong id="diskCardVal">0</strong> %</span>
+                            </div>
+                        </div>
+                    </button>
+
+                    <button class="metric-card" onclick="setMetric('carbon_rate', this)">
+                        <div class="metric-head">
+                            <span class="metric-title">Carbon Emission Rate <span class="info-dot" id="carbonInfoDot" data-tip=""></span></span>
+                            <span class="metric-icon">🌿</span>
+                        </div>
+                        <div class="metric-mini-line green-line"></div>
+                        <div class="metric-value-wrap">
+                            <span class="metric-value" id="carbonVal">0</span>
+                            <span class="metric-unit">kg/hr</span>
+                        </div>
+                        <div class="metric-note">Estimated from current power usage</div>
+                    </button>
+
+                    <div class="metric-card" onclick="setMetric('power', this)">
+                        <div class="metric-head">
+                            <span class="metric-title">Power Consumption <span class="info-dot" id="powerInfoDot" data-tip=""></span></span>
+                            <div class="power-card-actions">
+                                <button type="button" class="power-detail-btn" onclick="openPowerModal(event)">&gt;</button>
+                                <span class="metric-icon">⚡</span>
+                            </div>
+                        </div>
+                        <div class="metric-mini-line yellow-line"></div>
+                        <div class="metric-value-wrap">
+                            <span class="metric-value" id="powerVal">0</span>
+                            <span class="metric-unit">W</span>
+                        </div>
+                        <div class="metric-note" id="powerStatusOverview">Status: Good</div>
+                    </div>
+
+                    <button class="metric-card" onclick="setMetric('energy_total', this)">
+                        <div class="metric-head">
+                            <span class="metric-title">Energy Consumed <span class="info-dot" id="energyInfoDot" data-tip=""></span></span>
+                            <span class="metric-icon">🔋</span>
+                        </div>
+                        <div class="metric-mini-line purple-line"></div>
+                        <div class="metric-value-wrap">
+                            <span class="metric-value" id="energyVal">0</span>
+                            <span class="metric-unit">Wh</span>
+                        </div>
+                        <div class="metric-note">Total energy consumed so far</div>
+                    </button>
+                </div>
+
+                <div class="mini-panel">
+                    <div class="mini-panel-title-row">
+                        <div class="mini-panel-title">Alerts / Warnings</div>
+                        <span class="info-dot" id="alertHistoryDot" data-tip="No alerts yet."></span>
+                    </div>
+                    <div class="alert-list" id="alertList">
+                        <div class="alert-item neutral">System status normal.</div>
+                    </div>
+                </div>
+
+                <div class="mini-panel">
+                    <div class="mini-panel-title">AI Energy Advisor</div>
+                    <ul class="advisor-list" id="advisorList">
+                        <li>Collecting smart suggestions...</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <section class="right-panel">
+                <div class="section-title-wrap">
+                    <h2>System Details</h2>
+                    <div class="tiny-line"></div>
+                </div>
+
+                <div class="system-details-box">
+                    <div class="sys-grid">
+                        <div class="sys-item">
+                            <div class="sys-label">💻 Device / Model</div>
+                            <div class="sys-value"><strong id="deviceName">Device</strong> | <span id="deviceModel">Model</span></div>
+                        </div>
+
+                        <div class="sys-item">
+                            <div class="sys-label">🪟 OS</div>
+                            <div class="sys-value" id="deviceOS">OS</div>
+                        </div>
+
+                        <div class="sys-item">
+                            <div class="sys-label">🧠 CPU</div>
+                            <div class="sys-value" id="cpuName">-</div>
+                        </div>
+
+                        <div class="sys-item">
+                            <div class="sys-label">🎮 GPU</div>
+                            <div class="sys-value" id="gpuName">-</div>
+                        </div>
+
+                        <div class="sys-item">
+                            <div class="sys-label">🌐 Network</div>
+                            <div class="sys-value">
+                                WiFi: <strong id="wifiStatus">-</strong> |
+                                Ethernet: <strong id="ethernetStatus">-</strong> |
+                                Internet: <strong id="internetTop">0 KB/s</strong>
+                            </div>
+                        </div>
+
+                        <div class="sys-item">
+                            <div class="sys-label">🔋 Battery <span class="info-dot" id="batteryInfoDot" data-tip=""></span></div>
+                            <div class="sys-value"><strong id="batteryValTop">N/A</strong> | <span id="batteryStatusTop">-</span></div>
+                            <div class="sys-subline" id="batteryTimeTop">Estimating...</div>
+                        </div>
+
+                        <div class="sys-item">
+                            <div class="sys-label">🌫 Carbon Emission Till Now <span class="info-dot" id="co2TotalInfoDot" data-tip=""></span></div>
+                            <div class="sys-value"><strong id="co2TotalVal">0 kg</strong></div>
+                            <div class="sys-subline" id="co2PredictVal">1 Min: 0 kg | 5 Min: 0 kg</div>
+                        </div>
+
+                        <div class="sys-item">
+                            <div class="sys-label">📈 Energy Consumption Rate <span class="info-dot" id="energyRateInfoDot" data-tip=""></span></div>
+                            <div class="sys-value"><strong id="energyRateTop">0 Wh / sec</strong> | Next Sec: <strong id="futureEnergy">0 Wh / sec</strong></div>
+                        </div>
+
+                        <div class="sys-item green-score-box">
+                            <div class="sys-label">🌿 Green Score <span class="info-dot" id="greenScoreInfoDot" data-tip=""></span></div>
+                            <div class="sys-value green-score-value">
+                                <strong id="greenScoreVal">0%</strong>
+                                <span class="green-score-badge score-good" id="greenScoreBadge">Efficient</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="activity-header">
+                    <div class="section-title-wrap">
+                        <h2>Activity Status</h2>
+                        <div class="tiny-line"></div>
+                    </div>
+
+                    <div class="header-controls">
+                        <div class="toggle-row">
+                            <button class="toggle-btn active-toggle" id="toggleSelectedBtn">CPU Usage</button>
+                            <button class="toggle-btn active-toggle" id="togglePowerBtn" onclick="toggleSeries('power')">Power Consumption</button>
+                        </div>
+
+                        <div class="range-row">
+                            <button class="range-btn active-range" onclick="setTimeRange(60, this)">1 Min</button>
+                            <button class="range-btn" onclick="setTimeRange(300, this)">5 Min</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="main-chart-wrap">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+
+                    <div class="side-visuals">
+                        <div class="donut-wrap">
+                            <canvas id="donutChart"></canvas>
+                            <div class="donut-center">
+                                <div class="donut-number" id="donutValue">0</div>
+                                <div class="donut-unit" id="donutUnit">%</div>
+                            </div>
+                        </div>
+
+                        <div class="peak-box">
+                            <div class="peak-title">Peak Value</div>
+                            <div class="peak-value" id="peakValue">0</div>
+                            <div class="peak-time" id="peakTime">--:--:--</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="powerModal">
+        <div class="power-modal">
+            <div class="power-modal-header">
+                <h3>Power Breakdown</h3>
+                <button class="modal-close-btn" onclick="closePowerModal()">×</button>
+            </div>
+
+            <div class="power-breakdown-grid">
+                <div class="pb-row"><span>Base System</span><strong id="pbBase">0 W</strong></div>
+                <div class="pb-row"><span>Display</span><strong id="pbDisplay">0 W</strong></div>
+                <div class="pb-row"><span>Keyboard / Touchpad</span><strong id="pbInput">0 W</strong></div>
+                <div class="pb-row"><span>Motherboard / Fans</span><strong id="pbBoard">0 W</strong></div>
+                <div class="pb-row"><span>CPU Part</span><strong id="pbCPU">0 W</strong></div>
+                <div class="pb-row"><span>GPU Part</span><strong id="pbGPU">0 W</strong></div>
+                <div class="pb-row"><span>RAM Part</span><strong id="pbRAM">0 W</strong></div>
+                <div class="pb-row"><span>Disk Part</span><strong id="pbDisk">0 W</strong></div>
+                <div class="pb-row"><span>Network Part</span><strong id="pbNetwork">0 W</strong></div>
+                <div class="pb-row"><span>Charging Overhead</span><strong id="pbCharging">0 W</strong></div>
+                <div class="pb-row total"><span>Total Estimated Power</span><strong id="pbTotal">0 W</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="hoverTooltip" class="hover-tooltip"></div>
+
+    <script src="{{ url_for('static', filename='script.js') }}?v=52"></script>
+</body>
+</html>
